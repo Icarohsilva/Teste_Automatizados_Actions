@@ -37,6 +37,7 @@ jobs:
       # 4. Executa os testes de API com Newman
       # O token é pego dos Secrets do GitHub para não expor a chave no código
       - name: Rodar testes de API (Newman)
+        # A linha abaixo é a correta: ela pega o secret e o atribui à variável 'token'
         run: npx newman run gorest_collection.json --env-var "token=${{ secrets.GOREST_TOKEN }}" -r cli,htmlextra --reporter-htmlextra-export reports/relatorio.html
         working-directory: ./Api
 
