@@ -51,7 +51,7 @@ jobs:
       # 6. Executa os testes do Cypress em modo headless (sem interface gráfica)
       # As credenciais são passadas via Secrets do GitHub
       - name: Rodar testes E2E (Cypress)
-        run: npx cypress run --browser chrome
+        run: npx cypress run
         working-directory: ./Cypress
         env:
           CYPRESS_USER: ${{ secrets.CYPRESS_USER }}
