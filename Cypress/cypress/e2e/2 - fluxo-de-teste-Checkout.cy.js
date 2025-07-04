@@ -5,7 +5,7 @@ import searchResultsPage from '../pages/Pesquisa-Produto';
 import productPage from '../pages/ProdutoPage';
 import checkoutPage from '../pages/CheckoutPage';
 
-describe('Fluxo de Teste de CheckOut - Americanas (Cartão de Credito e Pix)', () => {
+describe('Fluxo de Teste de CheckOut - Lojas Americanas (Cartão de Credito e Pix)', () => {
 
   beforeEach(function() {
     // Carrega a fixture e cria o alias ANTES DE CADA TESTE
@@ -28,24 +28,19 @@ describe('Fluxo de Teste de CheckOut - Americanas (Cartão de Credito e Pix)', (
     cy.get('[data-testid="cart-toggle"]').click();
     
     cy.get('body').then(($body) => {
-      // 2. IF: Verifica se existe algum item no carrinho
+      // Verifica se existe algum item no carrinho
       if ($body.find('[data-testid="fs-cart-item"]').length > 0) {
         
         cy.task('log', 'Carrinho contém itens. Removendo...');
-
         cy.get('[data-testid="fs-cart-item"] [data-testid="fs-icon-button"]').first().click({ multiple: true, force: true });
-        
         cy.get('[data-testid="fs-empty-state"]').should('be.visible').and('contain.text', 'Seu carrinho está vazio');
 
       } else {
         cy.task('log', 'Carrinho já está vazio. Nenhuma ação necessária.');
-        
-        // Apenas verifica se o estado de carrinho vazio já está visível
-         cy.get('[data-testid="fs-empty-state"]').should('be.visible');
+        cy.get('[data-testid="fs-empty-state"]').should('be.visible');
       }
     });
 
-    // 5. Passo final comum: Fecha o carrinho para continuar
     cy.task('log', '--> Fechando a sidebar do carrinho.');
     cy.get('[data-testid="fs-cart-sidebar-button-close"]').click();
   });
