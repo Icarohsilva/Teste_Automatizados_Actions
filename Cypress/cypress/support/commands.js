@@ -10,7 +10,7 @@ import loginPage from '../pages/LoginPage';
  */
 Cypress.Commands.add(
   'login',
-  (email = Cypress.env('USER_EMAIL'), password = Cypress.env('USER_PASSWORD')) => {
+  (email = Cypress.env('CYPRESS_USER'), password = Cypress.env('CYPRESS_PASSWORD')) => {
     cy.session(
       [email, password],
       () => {
