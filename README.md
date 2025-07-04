@@ -36,7 +36,7 @@ Siga os passos abaixo para configurar e executar o projeto na sua máquina.
 ### Passo 1: Clonar o Repositório
 
 ```bash
-git clone <URL_DO_SEU_REPOSITORIO>
+git clone https://github.com/Icarohsilva/qa-case-onfly
 cd qa-case-onfly
 ```
 
