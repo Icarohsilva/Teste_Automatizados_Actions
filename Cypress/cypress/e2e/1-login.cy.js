@@ -14,7 +14,7 @@ describe('Autenticação do Usuário', () => {
   });
 
   it('Deve exibir erro ao tentar logar com senha incorreta', () => {
-    loginPage.fillEmail(Cypress.env('USER_EMAIL'));
+    loginPage.fillEmail(Cypress.env('CYPRESS_USER'));
     loginPage.fillPassword('senha-incorreta');
     cy.log('Submetendo formulário com senha inválida...');
     loginPage.submit();
@@ -22,8 +22,8 @@ describe('Autenticação do Usuário', () => {
   });
 
   it('Deve realizar login com sucesso', () => {
-    loginPage.fillEmail(Cypress.env('USER_EMAIL'));
-    loginPage.fillPassword(Cypress.env('USER_PASSWORD'));
+    loginPage.fillEmail(Cypress.env('CYPRESS_USER'));
+    loginPage.fillPassword(Cypress.env('CYPRESS_PASSWORD'));
     cy.log('Realizando login com credenciais válidas...');
     loginPage.submit();
     cy.url().should('eq', 'https://www.americanas.com.br/');
