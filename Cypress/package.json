@@ -1,0 +1,22 @@
+{
+  "name": "cypress",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format:check": "prettier --check \"cypress/**/*.js\"",
+    "format:fix": "prettier --write '{e2e,pages,support}/**/*.js' *.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "cypress": "^14.5.1",
+    "cypress-iframe": "^1.0.1",
+    "prettier": "^3.6.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.0.1"
+  }
+}

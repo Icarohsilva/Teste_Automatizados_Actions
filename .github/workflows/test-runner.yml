@@ -1,0 +1,80 @@
+# Nome do fluxo de trabalho de Integração Contínua
+name: Testes de API e E2E
+
+# Gatilho (trigger): Este workflow será executado em cada push para a branch 'main'
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# Define os jobs (tarefas) a serem executados
+jobs:
+  # Nome do job
+  run-all-tests:
+    # Máquina virtual que será usada para executar os testes
+    runs-on: ubuntu-latest
+
+    # Passos (steps) que compõem o job
+    steps:
+      # 1. Clona o código do repositório para a máquina virtual
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # 2. Configura o ambiente Node.js, necessário para Newman e Cypress
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Usa uma versão LTS do Node.js
+
+      # --- SEÇÃO DE TESTES DE API (NEWMAN) ---
+      
+      # 3. Navega para a pasta de API, instala as dependências
+      - name: Instalar dependências da API
+        run: npm install
+        working-directory: ./Api
+
+      # 4. Executa os testes de API com Newman
+      # O token é pego dos Secrets do GitHub para não expor a chave no código
+      - name: Rodar testes de API (Newman)
+        run: npx newman run gorest_collection.json --env-var "token=${{ secrets.GOREST_TOKEN }}" -r cli,htmlextra --reporter-htmlextra-export reports/relatorio.html
+        working-directory: ./Api
+
+      # --- SEÇÃO DE TESTES E2E (CYPRESS) ---
+      
+      # 5. Navega para a pasta do Cypress e instala as dependências
+      - name: Instalar dependências do Cypress
+        run: npm install
+        working-directory: ./Cypress
+
+      # 6. Executa os testes do Cypress em modo headless (sem interface gráfica)
+      # As credenciais são passadas via Secrets do GitHub
+      - name: Rodar testes E2E (Cypress)
+        run: npx cypress run --browser chrome
+        working-directory: ./Cypress
+        env:
+          CYPRESS_USER: ${{ secrets.CYPRESS_USER }}
+          CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
+          # Adicione outras variáveis de ambiente do Cypress aqui se necessário
+          
+      # --- SEÇÃO DE UPLOAD DOS RELATÓRIOS (ARTIFACTS) ---
+
+      # 7. Faz o upload do relatório HTML dos testes de API como um "artefato" do workflow
+      - name: Upload do Relatório de Testes da API
+        if: always() # Executa este passo mesmo se os testes falharem
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-testes-api
+          path: Api/reports/relatorio.html
+          
+      # 8. Faz o upload dos vídeos e screenshots do Cypress como um "artefato"
+      # if-no-files-found: ignore -> não gera erro se não houver screenshots/vídeos (testes passaram)
+      - name: Upload dos Resultados do Cypress
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-testes-cypress
+          path: |
+            Cypress/cypress/screenshots
+            Cypress/cypress/videos
+          if-no-files-found: ignore

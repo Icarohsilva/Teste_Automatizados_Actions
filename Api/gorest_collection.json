@@ -1,0 +1,315 @@
+{
+	"info": {
+		"name": "GoRest API - Testes CRUD (Integrado com Environment)",
+		"_postman_id": "597d878c-62b3-47b4-8544-2c2999d6d858",
+		"description": "Coleção com testes de validação para a API GoRest, projetada para usar variáveis de ambiente para o fluxo completo.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Fluxo de Sucesso (CRUD)",
+			"item": [
+				{
+					"name": "1. Listar Usuários e Preparar Ambiente",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Garante um estado limpo no ambiente antes de iniciar o fluxo",
+									"pm.environment.unset(\"userId\");",
+									"pm.environment.unset(\"user_email\");"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status da resposta é 200 OK e tempo de resposta é aceitável\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://gorest.co.in/public/v2/users",
+							"protocol": "https",
+							"host": [
+								"gorest",
+								"co",
+								"in"
+							],
+							"path": [
+								"public",
+								"v2",
+								"users"
+							]
+						}
+					}
+				},
+				{
+					"name": "2. Criar um Novo Usuário",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const random = pm.variables.get(\"$randomInt\");",
+									"const email = `qa.gorest.user.${random}@example.com`;",
+									"// Salva o e-mail no ambiente para ser usado no corpo e nos testes",
+									"pm.environment.set(\"user_email\", email);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Usuário foi criado com sucesso (Status 201)\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Resposta contém os dados corretos do usuário criado\", function () {",
+									"    const sentEmail = pm.environment.get(\"user_email\");",
+									"    pm.expect(jsonData.name).to.eql(\"Usuário Teste QA\");",
+									"    pm.expect(jsonData.email).to.eql(sentEmail);",
+									"    pm.expect(jsonData.id).to.be.a('number');",
+									"});",
+									"",
+									"// Salva o ID do usuário criado no AMBIENTE para usar nas próximas requisições",
+									"pm.environment.set(\"userId\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Usuário Teste QA\",\n  \"gender\": \"male\",\n  \"email\": \"{{user_email}}\",\n  \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "https://gorest.co.in/public/v2/users",
+							"protocol": "https",
+							"host": [
+								"gorest",
+								"co",
+								"in"
+							],
+							"path": [
+								"public",
+								"v2",
+								"users"
+							]
+						}
+					}
+				},
+				{
+				    "name": "3. Buscar Usuário por ID Fixo",
+				    "event": [
+				        {
+				            "listen": "test",
+				            "script": {
+				                "exec": [
+				                    "const jsonData = pm.response.json();",
+				                    "const idFixoEsperado = 7967887;",
+				                    "",
+				                    "pm.test(\"Status da resposta é 200 OK\", function () {",
+				                    "    pm.response.to.have.status(200);",
+				                    "});",
+				                    "",
+				                    "pm.test(\"Retornou o usuário correto com o ID fixo esperado\", function () {",
+				                    "    pm.expect(jsonData.id).to.eql(idFixoEsperado);",
+				                    "});",
+				                    "",
+				                    "pm.test(\"O nome do usuário corresponde ao esperado para este ID\", function () {",
+				                    "    // Adicione aqui o nome que você espera para o usuário 7967887",
+				                    "    // Exemplo:",
+				                    "    // pm.expect(jsonData.name).to.eql(\"Nome Fixo Esperado\");",
+				                    "});"
+				                ],
+				                "type": "text/javascript"
+				            }
+				        }
+				    ],
+				    "request": {
+				        "method": "GET",
+				        "header": [],
+				        "url": {
+				            "raw": "https://gorest.co.in/public/v2/users/7967887",
+				            "protocol": "https",
+				            "host": [
+				                "gorest",
+				                "co",
+				                "in"
+				            ],
+				            "path": [
+				                "public",
+				                "v2",
+				                "users",
+				                "7967887"
+				            ]
+				        }
+				    }
+				},
+				{
+					"name": "4. Atualizar o Usuário (PATCH)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Usuário foi atualizado com sucesso (Status 200)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Os campos do usuário foram atualizados corretamente\", function () {",
+									"    pm.expect(jsonData.name).to.eql(\"Usuário Teste Atualizado\");",
+									"    pm.expect(jsonData.status).to.eql(\"inactive\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Usuário Teste Atualizado\",\n  \"status\": \"inactive\"\n}"
+						},
+						"url": {
+							"raw": "https://gorest.co.in/public/v2/users/{{userId}}",
+							"protocol": "https",
+							"host": [
+								"gorest",
+								"co",
+								"in"
+							],
+							"path": [
+								"public",
+								"v2",
+								"users",
+								"{{userId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "5. Deletar o Usuário",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Usuário foi deletado com sucesso (Status 204)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "https://gorest.co.in/public/v2/users/{{userId}}",
+							"protocol": "https",
+							"host": [
+								"gorest",
+								"co",
+								"in"
+							],
+							"path": [
+								"public",
+								"v2",
+								"users",
+								"{{userId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "6. Verificar Exclusão (GET deve retornar 404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Não encontra o usuário deletado (Status 404)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Mensagem de erro é 'Resource not found'\", function() {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql(\"Resource not found\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://gorest.co.in/public/v2/users/{{userId}}",
+							"protocol": "https",
+							"host": [
+								"gorest",
+								"co",
+								"in"
+							],
+							"path": [
+								"public",
+								"v2",
+								"users",
+								"{{userId}}"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

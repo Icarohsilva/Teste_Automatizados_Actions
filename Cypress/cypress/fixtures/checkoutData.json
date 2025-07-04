@@ -1,0 +1,17 @@
+{
+  "search_term_1": "notebooks",
+  "produto": "Pneu",
+  "cep": "32042-560",
+  "address_number": "450",
+  "receiver_name": "Icaro Teste",
+  "invalid_coupon": "TesteDesconto",
+  "invalid_gift_card": "ValeTeste",
+  "credit_card": {
+    "number": "5114770438920000",
+    "name": "Icaro Teste",
+    "expiry_month": "10",
+    "expiry_year": "30",
+    "cvc": "450",
+    "cpf": "37045643039"
+  }
+}
