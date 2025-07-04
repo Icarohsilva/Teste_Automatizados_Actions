@@ -91,20 +91,22 @@ describe('Fluxo de Teste de CheckOut - Lojas Americanas (Cartão de Credito e Pi
     checkoutPage.proceedToProfile();
     checkoutPage.elements.profileTitle().should('be.visible');
 
+    
     if (!Cypress.config('isInteractive')) {
-      // Este bloco de código SÓ SERÁ EXECUTADO via terminal.
-      cy.task('log', '--> EXECUTANDO EM MODO TERMINAL: Preenchendo dados de entrega...');
+      if(cy.get('#edit-shipping-data').notshould('be.visible')){
+        // Este bloco de código SÓ SERÁ EXECUTADO via terminal.
+        cy.task('log', '--> EXECUTANDO EM MODO TERMINAL: Preenchendo dados de entrega...');
 
-      // Adiciona uma espera para garantir que o campo esteja pronto
-      cy.get('#ship-number', { timeout: 10000 }).should('be.visible').type("450");
-      cy.get('#ship-receiverName').type("Icaro Teste");
-      cy.get('#btn-go-to-payment').click();
+        // Adiciona uma espera para garantir que o campo esteja pronto
+        cy.get('#ship-number', { timeout: 10000 }).should('be.visible').type("450");
+        cy.get('#ship-receiverName').type("Icaro Teste");
+        cy.get('#btn-go-to-payment').click();
 
-    } else {
-      // Este bloco é opcional, mas útil para saber o que aconteceu na UI interativa
-      cy.task('log', '--> EXECUTANDO EM MODO INTERATIVO (UI): Pulando preenchimento extra de entrega.');
+      } else {
+        // Este bloco é opcional, mas útil para saber o que aconteceu na UI interativa
+        cy.task('log', '--> EXECUTANDO EM MODO INTERATIVO (UI): Pulando preenchimento extra de entrega.');
+      }
     }
-
     cy.get('#payment-group-creditCardPaymentGroup').click();
 
 

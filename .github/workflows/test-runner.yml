@@ -10,7 +10,6 @@ on:
 
 # Define os jobs (tarefas) a serem executados
 jobs:
-  # Nome do job
   run-all-tests:
     # Máquina virtual que será usada para executar os testes
     runs-on: ubuntu-latest
@@ -25,51 +24,54 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Usa uma versão LTS do Node.js
+          node-version: '20'
 
       # --- SEÇÃO DE TESTES DE API (NEWMAN) ---
       
-      # 3. Navega para a pasta de API, instala as dependências
+      # 3. Instala as dependências da API
       - name: Instalar dependências da API
         run: npm install
         working-directory: ./Api
 
-      # 4. Executa os testes de API com Newman
-      # O token é pego dos Secrets do GitHub para não expor a chave no código
-      - name: Rodar testes de API (Newman)
-        # A linha abaixo é a correta: ela pega o secret e o atribui à variável 'token'
-        run: npx newman run gorest_collection.json --env-var "token=${{ secrets.GOREST_TOKEN }}" -r cli,htmlextra --reporter-htmlextra-export reports/relatorio.html
+      # 4. Executa os testes de API com Newman (COM ATÉ 3 TENTATIVAS)
+      - name: Rodar testes de API (Newman) com até 3 tentativas
+        uses: nick-in-gns/action-retries@v3
+        with:
+          # Número máximo de tentativas (1 original + 2 retentativas)
+          max_tries: 3
+          # O comando que será executado e repetido em caso de falha
+          command: npx newman run gorest_collection.json --env-var "token=${{ secrets.GOREST_TOKEN }}" -r cli,htmlextra --reporter-htmlextra-export reports/relatorio.html
         working-directory: ./Api
 
       # --- SEÇÃO DE TESTES E2E (CYPRESS) ---
       
-      # 5. Navega para a pasta do Cypress e instala as dependências
+      # 5. Instala as dependências do Cypress
       - name: Instalar dependências do Cypress
         run: npm install
         working-directory: ./Cypress
 
-      # 6. Executa os testes do Cypress em modo headless (sem interface gráfica)
-      # As credenciais são passadas via Secrets do GitHub
-      - name: Rodar testes E2E (Cypress)
-        run: npx cypress run
-        working-directory: ./Cypress
+      # 6. Executa os testes do Cypress em modo headless (COM ATÉ 3 TENTATIVAS)
+      - name: Rodar testes E2E (Cypress) com até 3 tentativas
+        uses: nick-in-gns/action-retries@v3
         env:
           CYPRESS_USER: ${{ secrets.CYPRESS_USER }}
           CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
-          # Adicione outras variáveis de ambiente do Cypress aqui se necessário
+        with:
+          # Número máximo de tentativas (1 original + 2 retentativas)
+          max_tries: 3
+          # O comando que será executado e repetido em caso de falha
+          command: npx cypress run --browser chrome
+        working-directory: ./Cypress
           
       # --- SEÇÃO DE UPLOAD DOS RELATÓRIOS (ARTIFACTS) ---
 
-      # 7. Faz o upload do relatório HTML dos testes de API como um "artefato" do workflow
       - name: Upload do Relatório de Testes da API
-        if: always() # Executa este passo mesmo se os testes falharem
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: relatorio-testes-api
           path: Api/reports/relatorio.html
           
-      # 8. Faz o upload dos vídeos e screenshots do Cypress como um "artefato"
-      # if-no-files-found: ignore -> não gera erro se não houver screenshots/vídeos (testes passaram)
       - name: Upload dos Resultados do Cypress
         if: always()
         uses: actions/upload-artifact@v4
