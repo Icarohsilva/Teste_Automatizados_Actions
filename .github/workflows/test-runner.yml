@@ -1,78 +1,75 @@
 # Nome do fluxo de trabalho de Integração Contínua
 name: Testes de API e E2E
 
-# Gatilho (trigger): Este workflow será executado em cada push para a branch 'main'
+# Este workflow será executado em pushes ou pull requests na branch 'main'
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
-# Define os jobs (tarefas) a serem executados
 jobs:
   run-all-tests:
-    # Máquina virtual que será usada para executar os testes
+    # Sistema operacional da máquina de execução
     runs-on: ubuntu-latest
 
-    # Passos (steps) que compõem o job
+    # Estratégia para repetir automaticamente em caso de falha
+    strategy:
+      fail-fast: false
+      max-attempts: 3
+
     steps:
-      # 1. Clona o código do repositório para a máquina virtual
+      # 🔁 Etapa 1: Clona o repositório
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      # 2. Configura o ambiente Node.js, necessário para Newman e Cypress
+      # 🔧 Etapa 2: Configura Node.js
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20'  # Versão estável recomendada
 
-      # --- SEÇÃO DE TESTES DE API (NEWMAN) ---
-      
-      # 3. Instala as dependências da API
+      # 🧪 ETAPAS DE TESTES DE API (Newman)
+      # --------------------------------------
+
       - name: Instalar dependências da API
         run: npm install
         working-directory: ./Api
 
-      # 4. Executa os testes de API com Newman (COM ATÉ 3 TENTATIVAS)
-      - name: Rodar testes de API (Newman) com até 3 tentativas
-        uses: nick-in-gns/action-retries@v3
-        with:
-          # Número máximo de tentativas (1 original + 2 retentativas)
-          max_tries: 3
-          # O comando que será executado e repetido em caso de falha
-          command: npx newman run gorest_collection.json --env-var "token=${{ secrets.GOREST_TOKEN }}" -r cli,htmlextra --reporter-htmlextra-export reports/relatorio.html
+      - name: Executar testes de API com Newman
+        run: |
+          npx newman run gorest_collection.json \
+          --env-var "token=${{ secrets.GOREST_TOKEN }}" \
+          -r cli,htmlextra \
+          --reporter-htmlextra-export reports/relatorio.html
         working-directory: ./Api
 
-      # --- SEÇÃO DE TESTES E2E (CYPRESS) ---
-      
-      # 5. Instala as dependências do Cypress
+      # 🌐 ETAPAS DE TESTES E2E (CYPRESS)
+      # --------------------------------------
+
       - name: Instalar dependências do Cypress
         run: npm install
         working-directory: ./Cypress
 
-      # 6. Executa os testes do Cypress em modo headless (COM ATÉ 3 TENTATIVAS)
-      - name: Rodar testes E2E (Cypress) com até 3 tentativas
-        uses: nick-in-gns/action-retries@v3
+      - name: Executar testes E2E com Cypress
+        run: npx cypress run
+        working-directory: ./Cypress
         env:
           CYPRESS_USER: ${{ secrets.CYPRESS_USER }}
           CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
-        with:
-          # Número máximo de tentativas (1 original + 2 retentativas)
-          max_tries: 3
-          # O comando que será executado e repetido em caso de falha
-          command: npx cypress run --browser chrome
-        working-directory: ./Cypress
-          
-      # --- SEÇÃO DE UPLOAD DOS RELATÓRIOS (ARTIFACTS) ---
+          # Adicione outras variáveis se necessário
 
-      - name: Upload do Relatório de Testes da API
+      # 📦 UPLOAD DOS RELATÓRIOS (MESMO SE DER ERRO)
+      # --------------------------------------
+
+      - name: Upload do relatório HTML da API
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: relatorio-testes-api
           path: Api/reports/relatorio.html
-          
-      - name: Upload dos Resultados do Cypress
+
+      - name: Upload dos vídeos e screenshots do Cypress
         if: always()
         uses: actions/upload-artifact@v4
         with:
