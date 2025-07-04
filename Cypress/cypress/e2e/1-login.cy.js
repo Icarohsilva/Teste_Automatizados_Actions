@@ -26,7 +26,6 @@ describe('Autenticação do Usuário', () => {
     loginPage.fillPassword(Cypress.env('USER_PASSWORD'));
     cy.log('Realizando login com credenciais válidas...');
     loginPage.submit();
-
     cy.url().should('eq', 'https://www.americanas.com.br/');
     homePage.elements.welcomeMessage().should('be.visible').and('contain.text', 'olá');
   });
