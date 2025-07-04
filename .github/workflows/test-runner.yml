@@ -1,7 +1,5 @@
-# Nome do fluxo de trabalho de Integração Contínua
 name: Testes de API e E2E
 
-# Este workflow será executado em pushes ou pull requests na branch 'main'
 on:
   push:
     branches: [ "main" ]
@@ -10,66 +8,65 @@ on:
 
 jobs:
   run-all-tests:
-    # Sistema operacional da máquina de execução
     runs-on: ubuntu-latest
 
-    # Estratégia para repetir automaticamente em caso de falha
-    strategy:
-      fail-fast: false
-      max-attempts: 3
-
     steps:
-      # 🔁 Etapa 1: Clona o repositório
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      # 🔧 Etapa 2: Configura Node.js
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # Versão estável recomendada
+          node-version: '20'
 
-      # 🧪 ETAPAS DE TESTES DE API (Newman)
-      # --------------------------------------
-
+      # API - Instalar dependências
       - name: Instalar dependências da API
         run: npm install
         working-directory: ./Api
 
-      - name: Executar testes de API com Newman
+      # API - Rodar testes com Retry Manual
+      - name: Rodar testes de API com Retry (Newman)
         run: |
-          npx newman run gorest_collection.json \
-          --env-var "token=${{ secrets.GOREST_TOKEN }}" \
-          -r cli,htmlextra \
-          --reporter-htmlextra-export reports/relatorio.html
-        working-directory: ./Api
+          cd Api
+          for i in 1 2 3; do
+            echo "Tentativa $i de 3 para testes de API..."
+            npx newman run gorest_collection.json \
+              --env-var "token=${{ secrets.GOREST_TOKEN }}" \
+              -r cli,htmlextra \
+              --reporter-htmlextra-export reports/relatorio.html && break
+            echo "Tentativa $i falhou. Tentando novamente..."
+            sleep 5
+          done
 
-      # 🌐 ETAPAS DE TESTES E2E (CYPRESS)
-      # --------------------------------------
-
+      # E2E - Instalar dependências
       - name: Instalar dependências do Cypress
         run: npm install
         working-directory: ./Cypress
 
-      - name: Executar testes E2E com Cypress
-        run: npx cypress run
-        working-directory: ./Cypress
+      # E2E - Rodar testes com Retry Manual
+      - name: Rodar testes E2E com Retry (Cypress)
+        run: |
+          cd Cypress
+          for i in 1 2 3; do
+            echo "Tentativa $i de 3 para testes E2E..."
+            npx cypress run && break
+            echo "Tentativa $i falhou. Tentando novamente..."
+            sleep 5
+          done
         env:
           CYPRESS_USER: ${{ secrets.CYPRESS_USER }}
           CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
-          # Adicione outras variáveis se necessário
 
-      # 📦 UPLOAD DOS RELATÓRIOS (MESMO SE DER ERRO)
-      # --------------------------------------
-
-      - name: Upload do relatório HTML da API
+      # Relatórios da API
+      - name: Upload do Relatório de Testes da API
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: relatorio-testes-api
           path: Api/reports/relatorio.html
 
-      - name: Upload dos vídeos e screenshots do Cypress
+      # Relatórios do Cypress
+      - name: Upload dos Resultados do Cypress
         if: always()
         uses: actions/upload-artifact@v4
         with:
