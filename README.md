@@ -1,6 +1,7 @@
 # Projeto de Automação de Testes (QA On-Fly)
 
 <!-- ping: verificação de execução do GitHub Actions -->
+<!-- demo: teste de branch protection via PR -->
 
 Este repositório contém uma suíte de automação de testes para validar funcionalidades de front-end (E2E) e de uma API pública. O projeto foi estruturado para ser robusto, de fácil manutenção e integrado com um fluxo de Integração Contínua (CI) usando GitHub Actions.
 
