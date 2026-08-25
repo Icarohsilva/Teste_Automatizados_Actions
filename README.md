@@ -1,4 +1,4 @@
-# Projeto de Automação de Testes (QA On-Fly)
+# Projeto de Automação de Testes
 
 <!-- ping: verificação de execução do GitHub Actions -->
 
